@@ -1,16 +1,22 @@
 pipeline {
-    agent none
-    environment {
-        NX_BRANCH = env.BRANCH_NAME.replace('PR-', '')
+    agent {
+        docker {
+            image 'node:6-alpine'
+            args '-p 3000:3000'
+        }
     }
     stages {
         stage('Pipeline') {
             parallel {
+                stage('Test') {
+                    steps {
+                        sh "npx nx test nx-apollo"
+                    }
+                }
                 stage('Main') {
                     when {
                         branch 'main'
                     }
-                    agent any
                     steps {
                         // This line enables distribution
                         // The "--stop-agents-after" is optional, but allows idle agents to shut down once the "e2e-ci" targets have been requested
@@ -24,7 +30,6 @@ pipeline {
                     when {
                         not { branch 'main' }
                     }
-                    agent any
                     steps {
                         // This line enables distribution
                         // The "--stop-agents-after" is optional, but allows idle agents to shut down once the "e2e-ci" targets have been requested
